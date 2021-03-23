@@ -24,49 +24,49 @@ class fvStartup:
         self.mainFrame = ttk.Frame(self.root, padding="5 5 5 5", borderwidth=5, relief="ridge")
         self.mainFrame.grid(column=0, row=0, sticky=(N, W, E, S))
 
-    def promptNewUser(self):
-        #Setup the new user window prompts
-        nuLabel = ttk.Label(self.mainFrame, text="Are you creating a new user?", font=self.promptFont)
-        nuLabel.grid(column=0, row=0, columnspan=2, sticky = (N, E, W))
-        nuYButton = ttk.Button(self.mainFrame, text="YES", command=self.newUser)
-        nuYButton.grid(column=0, row=1, sticky = (N, E, W))
-        nuNButton = ttk.Button(self.mainFrame, text="NO", command=self.userSearch)
-        nuNButton.grid(column=1, row=1, sticky = (N, E, W))
+    def promptNewPatient(self):
+        #Setup the new patient window prompts
+        npLabel = ttk.Label(self.mainFrame, text="Are you creating a new patient?", font=self.promptFont)
+        npLabel.grid(column=0, row=0, columnspan=2, sticky = (N, E, W))
+        npYButton = ttk.Button(self.mainFrame, text="YES", command=self.newPatient)
+        npYButton.grid(column=0, row=1, sticky = (N, E, W))
+        npNButton = ttk.Button(self.mainFrame, text="NO", command=self.patientSearch)
+        npNButton.grid(column=1, row=1, sticky = (N, E, W))
 
-    def newUser(self):
-        nuWindow = Toplevel(self.root)
-        nuWindow.title("New User Entry")
-        nuWindow.resizable(False, False)
-        nuFrame = ttk.Frame(nuWindow, padding="5 5 5 5", borderwidth=5, relief="ridge")
-        nuFrame.grid(column=0, row=0, sticky=(N, W, E, S))
-        nueLabel = ttk.Label(nuFrame, text="Enter Patient Info", font=self.promptFont)
-        nueLabel.grid(column=0, row=0, columnspan=2, sticky = (N, W))
-        fnLabel = ttk.Label(nuFrame, text="First Name")
+    def newPatient(self):
+        npWindow = Toplevel(self.root)
+        npWindow.title("New Patient Entry")
+        npWindow.resizable(False, False)
+        npFrame = ttk.Frame(npWindow, padding="5 5 5 5", borderwidth=5, relief="ridge")
+        npFrame.grid(column=0, row=0, sticky=(N, W, E, S))
+        npeLabel = ttk.Label(npFrame, text="Enter Patient Info", font=self.promptFont)
+        npeLabel.grid(column=0, row=0, columnspan=2, sticky = (N, W))
+        fnLabel = ttk.Label(npFrame, text="First Name")
         fnLabel.grid(column=0, row=1, sticky = (N, W))
-        fnEntry = ttk.Entry(nuFrame)
+        fnEntry = ttk.Entry(npFrame)
         fnEntry.grid(column=0, row=2, sticky = (N, W))
-        lnLabel = ttk.Label(nuFrame, text="Last Name")
+        lnLabel = ttk.Label(npFrame, text="Last Name")
         lnLabel.grid(column=0, row=3, sticky = (N, W))
-        lnEntry = ttk.Entry(nuFrame)
+        lnEntry = ttk.Entry(npFrame)
         lnEntry.grid(column=0, row=4, sticky = (N, W))
-        dobLabel = ttk.Label(nuFrame, text="Date of birth")
+        dobLabel = ttk.Label(npFrame, text="Date of birth")
         dobLabel.grid(column=0, row=5, sticky = (N, W))
-        dobEntry = ttk.Entry(nuFrame)
+        dobEntry = ttk.Entry(npFrame)
         dobEntry.grid(column=0, row=6, sticky = (N, W))
-        pidLabel = ttk.Label(nuFrame, text="Patient Identifier")
+        pidLabel = ttk.Label(npFrame, text="Patient Identifier")
         pidLabel.grid(column=0, row=7, sticky = (N, W))
-        pidEntry = ttk.Entry(nuFrame)
+        pidEntry = ttk.Entry(npFrame)
         pidEntry.grid(column=0, row=8, sticky = (N, W))
-        nueSubmitButton = ttk.Button(nuFrame, text="SUBMIT")
-        nueSubmitButton.grid(column=0, row=9, sticky = (N, E, W))
-        nuCancelButton = ttk.Button(nuFrame, text="CANCEL")
-        nuCancelButton.grid(column=1, row=9, sticky = (N, E, W))
+        npeSubmitButton = ttk.Button(npFrame, text="SUBMIT")
+        npeSubmitButton.grid(column=0, row=9, sticky = (N, E, W))
+        npCancelButton = ttk.Button(npFrame, text="CANCEL", command=npWindow.destroy)
+        npCancelButton.grid(column=1, row=9, sticky = (N, E, W))
 
-    def userSearch(self):
-        print("Search for user!")
+    def patientSearch(self):
+        print("Search for patient!")
 
     def run_startup(self):
-        self.promptNewUser()
+        self.promptNewPatient()
         self.root.mainloop()
 
 if __name__ == '__main__':

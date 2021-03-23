@@ -10,10 +10,13 @@ __license__ = "GPL V3"
 from tkinter import *
 from tkinter import ttk
 from tkinter import font
+import fvstartup as su
 
 class forceView:
 
     def __init__(self):
+        progEntry = su.fvStartup()
+        progEntry.run_startup()
         self.root = Tk()
         self.root.title("Force View")
 
