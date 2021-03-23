@@ -13,10 +13,12 @@ from tkinter import font
 
 class forceView:
 
-    def __init__(self, root):
-        root.title("Force View")
+    def __init__(self):
+        self.root = Tk()
+        self.root.title("Force View")
 
-        mainframe = ttk.Frame(root, padding="5 5 5 5")
+    def run_app(self):
+        mainframe = ttk.Frame(self.root, padding="5 5 5 5")
         mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 
         #Setup title fonts
@@ -99,16 +101,17 @@ class forceView:
         sgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=200)
         sgFrame.grid(column=1, row=2, columnspan=3,  rowspan=1, sticky=(N, S, E, W))
 
-        root.columnconfigure(0, weight=1)
-        root.rowconfigure(0, weight=1)
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
         mainframe.columnconfigure(1, weight=3)
         mainframe.columnconfigure(2, weight=3)
         mainframe.columnconfigure(3, weight=3)
         mainframe.rowconfigure(0, weight=4)
         mainframe.rowconfigure(1, weight=4)
         mainframe.rowconfigure(2, weight=1)
+        self.root.mainloop()
 
-root = Tk()
-forceView(root)
-root.mainloop()
-
+if __name__ == '__main__':
+    #Make an instance of the application and run it
+    fv = forceView()
+    fv.run_app()
