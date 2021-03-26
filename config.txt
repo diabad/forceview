@@ -1,1 +1,1 @@
-path E:\Google Drive\School\CPE500\forceview
+dbpath E:\Google Drive\School\CPE500\forceview\fvdatabase.db
