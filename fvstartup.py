@@ -11,6 +11,7 @@ __license__ = "GPL V3"
 from tkinter import *
 from tkinter import ttk
 from tkinter import font
+import dbhandler as dh
 
 class fvStartup:
 
@@ -91,6 +92,10 @@ class fvStartup:
         spCancelButton = ttk.Button(spFrame, text="CANCEL", command=spWindow.destroy)
         spCancelButton.grid(column=1, row=9, sticky = (N, E, W))
 
+    #Insert a new patient into the database
+    def insertPatient(self, lnStr):
+        print(lnStr)
+        
     def run_startup(self):
         self.promptNewPatient()
         self.root.mainloop()
