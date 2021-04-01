@@ -11,6 +11,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import font
 import fvstartup as su
+import fvpatient as fp
 
 class forceView:
 
@@ -19,6 +20,7 @@ class forceView:
         progEntry.run_startup()
         self.root = Tk()
         self.root.title("Force View")
+        self.currPat = fp.fvPatient(None, None, None, None)
 
     def run_app(self):
         mainframe = ttk.Frame(self.root, padding="5 5 5 5")
