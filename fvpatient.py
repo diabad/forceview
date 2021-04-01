@@ -9,11 +9,8 @@ __license__ = "GPL V3"
 
 class fvPatient:
 
-    def __init__(self, lname, fname, dob, patid):
-        self.lname = lname
-        self.fname = fname
-        self.dob = dob
-        self.patid = patid
+    def __init__(self):
+        pass
     
     #Returns the SQL needed to insert a patient
     def genInsertSQL(self):
@@ -32,8 +29,11 @@ class fvPatient:
                   WHERE id={}'''.format(self.id)
     
     #Set patient info
-    def setPatInfo(self):
-        self.lname = 
+    def setPatInfo(self, lname, fname, dob, patid):
+        self.lname = lname
+        self.fname = fname
+        self.dob = dob
+        self.patid = patid
 
     #Retun all patient info
     def getPatInfo(self):

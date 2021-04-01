@@ -16,11 +16,11 @@ import fvpatient as fp
 class forceView:
 
     def __init__(self):
-        progEntry = su.fvStartup()
+        self.currPat = fp.fvPatient()
+        progEntry = su.fvStartup(self.currPat)
         progEntry.run_startup()
         self.root = Tk()
         self.root.title("Force View")
-        self.currPat = fp.fvPatient(None, None, None, None)
 
     def run_app(self):
         mainframe = ttk.Frame(self.root, padding="5 5 5 5")
@@ -119,4 +119,5 @@ class forceView:
 if __name__ == '__main__':
     #Make an instance of the application and run it
     fv = forceView()
+    print(fv.currPat.getPatInfo())
     fv.run_app()

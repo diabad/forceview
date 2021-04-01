@@ -16,7 +16,7 @@ import fvpatient as fp
 
 class fvStartup:
 
-    def __init__(self):
+    def __init__(self, patient):
         self.root = Tk()
         self.root.title("Force View Start Up")
         self.root.resizable(False, False)
@@ -25,6 +25,7 @@ class fvStartup:
         #Create a frame to hold everything
         self.mainFrame = ttk.Frame(self.root, padding="5 5 5 5", borderwidth=5, relief="ridge")
         self.mainFrame.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.patient = patient
 
     #Create the new patient prompt window
     def promptNewPatient(self):
@@ -105,9 +106,9 @@ class fvStartup:
 
     #Insert a new patient into the database
     def insertPatToDB(self):
-        self.currPat = fp.fvPatient(self.lname.get(), self.fname.get(), self.dobirth.get(), self.patid.get())
+        self.patient.setPatInfo(self.lname.get(), self.fname.get(), self.dobirth.get(), self.patid.get())
         dbHand = dh.dbHandler()
-        dbHand.createPatient(self.currPat.getPatInfo())
+        dbHand.createPatient(self.patient.getPatInfo())
         self.npWindow.destroy()
         self.root.destroy()
        
