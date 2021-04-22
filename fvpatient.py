@@ -45,6 +45,6 @@ class fvPatient:
 
 if __name__ == '__main__':
     #Make an instance of the application and run it
-    pat = fvPatient('Doe', 'Jane', '1-2-1945', '123-45-6789')
-    print(pat.genInsertSQL())
-    print(pat.genQuerySQL())
+    pat = fvPatient()
+    pat.setPatInfo('Doe', 'Jane', '1-2-1945', '123-45-6789')
+    print(type(pat.lname))

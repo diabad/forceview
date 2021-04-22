@@ -7,8 +7,8 @@ __author__ = "Aaron Diab"
 __version__ = "0.1.0"
 __license__ = "GPL V3"
 
-import dbhandler
+import dbhandler as dbh
 
 #Make an instance of the database handler
-dh = dbHandler()
+dh = dbh.dbHandler()
 dh.createPatTable()

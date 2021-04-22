@@ -22,7 +22,25 @@ class forceView:
         self.root = Tk()
         self.root.title("Force View")
 
+    #Opens a dialog to allow you to open a new datafile
+    def openNewFile(self):
+        pass
+
+    #Opens a dialog to allow you to open an existing datafile
+    def openExtantFile(self):
+        pass
+       
     def run_app(self):
+        #Setup the menubar
+        self.root.option_add('*tearOff', FALSE)
+        menubar = Menu(self.root)
+        self.root['menu'] = menubar
+        menuFile = Menu(menubar)
+        menubar.add_cascade(menu=menuFile, label='File')
+        menuFile.add_command(label='Open New File', command=self.openNewFile)
+        menuFile.add_command(label='Open Existing File', command=self.openExtantFile)
+
+        #Create the main content frame
         mainframe = ttk.Frame(self.root, padding="5 5 5 5")
         mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 
@@ -35,21 +53,33 @@ class forceView:
         piFrame.grid_propagate(False)
         piTitle = ttk.Label(piFrame, text="Patient Info", font=titleFont)
         piTitle.grid(sticky = (N, W))
+        #First name entry
         fnLabel = ttk.Label(piFrame, text="First Name")
         fnLabel.grid(sticky = (N, W))
-        fnEntry = ttk.Entry(piFrame)
+        fnEntryStr = StringVar()
+        fnEntryStr.set(self.currPat.fname)
+        fnEntry = ttk.Entry(piFrame, textvariable=fnEntryStr)
         fnEntry.grid(sticky = (N, W))
+        #Last name entry
         lnLabel = ttk.Label(piFrame, text="Last Name")
         lnLabel.grid(sticky = (N, W))
-        lnEntry = ttk.Entry(piFrame)
+        lnEntryStr = StringVar()
+        lnEntryStr.set(self.currPat.lname)
+        lnEntry = ttk.Entry(piFrame, textvariable=lnEntryStr)
         lnEntry.grid(sticky = (N, W))
+        #Date of birth entry
         dobLabel = ttk.Label(piFrame, text="Date of birth")
         dobLabel.grid(sticky = (N, W))
-        dobEntry = ttk.Entry(piFrame)
+        dobEntryStr = StringVar()
+        dobEntryStr.set(self.currPat.dob)
+        dobEntry = ttk.Entry(piFrame, textvariable=dobEntryStr)
         dobEntry.grid(sticky = (N, W))
+        #Patient ID entry
         pidLabel = ttk.Label(piFrame, text="Patient Identifier")
         pidLabel.grid(sticky = (N, W))
-        pidEntry = ttk.Entry(piFrame)
+        pidEntryStr = StringVar()
+        pidEntryStr.set(self.currPat.patid)
+        pidEntry = ttk.Entry(piFrame, textvariable=pidEntryStr)
         pidEntry.grid(sticky = (N, W))
 
         #Setup the data statistics frame
@@ -119,5 +149,4 @@ class forceView:
 if __name__ == '__main__':
     #Make an instance of the application and run it
     fv = forceView()
-    print(fv.currPat.getPatInfo())
     fv.run_app()

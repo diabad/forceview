@@ -34,7 +34,7 @@ class dbHandler:
         
         return dbConn
 
-    
+    #Creates a table 
     def createTable(self, dbconn, tableSQL):
         #Create the database cursor
         try:
@@ -68,10 +68,31 @@ class dbHandler:
 
         return dbCur.lastrowid
 
+    def getPatients(self):
+        #SQL to retrieve all patients from the database
+        dbCur = self.dbConn.cursor()
+        dbCur.execute("SELECT * FROM patients") 
+       
+        #Execute SQL query
+        patients = dbCur.fetchall()
+
+        return patients
+
+    #Query a specific patient by name
+    def getSpecificPat(self, fname, lname):
+        #SQL to retrieve a specific patient from the database
+        dbCur = self.dbConn.cursor()
+        sql = 'SELECT * FROM patients WHERE first_name = \'' + fname + '\' AND last_name = \'' + lname +'\''
+        dbCur.execute(sql)
+
+        patient = dbCur.fetchall()
+        return patient
+          
+
 if __name__ == '__main__':
     #Make an instance of the application and run it
     dh = dbHandler()
-    dh.createPatTable()
+    #dh.createPatTable()
     patient = ('Doe', 'John', '1-1-1945', 987-65-4321)
-    dh.createPatient(patient)
+    print(dh.getPatients())
 
