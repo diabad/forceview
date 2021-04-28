@@ -10,6 +10,10 @@ __license__ = "GPL V3"
 from tkinter import *
 from tkinter import ttk
 from tkinter import font
+from tkinter import filedialog
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+import numpy as np
+import matplotlib.pyplot as plt
 import fvstartup as su
 import fvpatient as fp
 
@@ -24,7 +28,44 @@ class forceView:
 
     #Opens a dialog to allow you to open a new datafile
     def openNewFile(self):
-        pass
+        #Creat a new toplevel window for the progress bar and the progress bar
+        progWindow = Toplevel(self.root)
+        progWindow.title("Data downsampling progress")
+        progBar = ttk.Progressbar(progWindow, orient = HORIZONTAL, length = 500, mode = 'determinate', maximum = 100)
+        progWindow.attributes('-topmost', 'true')
+        progBar.grid()
+
+        #Prompt the user for the data file
+        dataFile = filedialog.askopenfilename()
+        data = np.fromfile(dataFile, dtype='<u2')
+        secs = np.floor_divide(data.size,250)
+        #secs = 3600
+        avgData = np.array([])
+
+        #Down sample the data to an average of all the sample over a second
+        for i in range(secs-1):
+            progBar['value'] = i/secs * 100
+            progWindow.update()
+            #print("Percent done: "+str(progBar['value'])+"%")
+            sumData = 0
+            for j in range(249):
+                sumData = sumData + data[i*250+j]
+            avg = np.floor_divide(sumData, 250)
+            avgData = np.append(avgData, avg)
+        
+        #Kill the progress bar window
+        progWindow.destroy()
+
+        self.plotNav(avgData)
+    
+    #Plot the nav graph
+    def plotNav(self, data):
+        #Create the nav plot
+        fig, ax = plt.subplots()
+        ax.plot(data)
+        ax.set(xlabel='Seconds', ylabel='Force (N)',
+               title='Force sensor data')
+        plt.show()
 
     #Opens a dialog to allow you to open an existing datafile
     def openExtantFile(self):
