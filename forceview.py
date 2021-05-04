@@ -12,6 +12,8 @@ from tkinter import ttk
 from tkinter import font
 from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
 import numpy as np
 import matplotlib.pyplot as plt
 import fvstartup as su
@@ -21,6 +23,7 @@ class forceView:
 
     def __init__(self):
         self.currPat = fp.fvPatient()
+        self.selData = np.array([])
         progEntry = su.fvStartup(self.currPat)
         progEntry.run_startup()
         self.root = Tk()
@@ -40,7 +43,6 @@ class forceView:
         data = np.fromfile(dataFile, dtype='<u2')
         secs = np.floor_divide(data.size,250)
         #secs = 3600
-        avgData = np.array([])
 
         #Down sample the data to an average of all the sample over a second
         for i in range(secs-1):
@@ -51,21 +53,23 @@ class forceView:
             for j in range(249):
                 sumData = sumData + data[i*250+j]
             avg = np.floor_divide(sumData, 250)
-            avgData = np.append(avgData, avg)
+            self.selData = np.append(self.selData, avg)
         
         #Kill the progress bar window
         progWindow.destroy()
 
-        self.plotNav(avgData)
+        self.plotSelGraph()
     
-    #Plot the nav graph
-    def plotNav(self, data):
+    #Plot the Selection graph
+    def plotSelGraph(self):
         #Create the nav plot
+        #Maybe create the figure first and then the axes
         fig, ax = plt.subplots()
-        ax.plot(data)
-        ax.set(xlabel='Seconds', ylabel='Force (N)',
-               title='Force sensor data')
-        plt.show()
+        ax.plot(self.selData)
+        #ax.set(xlabel='Seconds', ylabel='Force (N)')
+        selCanvas = FigureCanvasTkAgg(fig, master=self.sgFrame)
+        selCanvas.draw()
+        selCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
 
     #Opens a dialog to allow you to open an existing datafile
     def openExtantFile(self):
@@ -174,8 +178,9 @@ class forceView:
         mgFrame.grid(column=1, row=0, columnspan=3,  rowspan=2, sticky=(N, S, E, W))
 
         #Setup the selection graph frame
-        sgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=200)
-        sgFrame.grid(column=1, row=2, columnspan=3,  rowspan=1, sticky=(N, S, E, W))
+        self.sgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=200)
+        self.sgFrame.grid(column=1, row=2, columnspan=3,  rowspan=1, sticky=(N, S, E, W))
+        self.sgFrame.pack_propagate(False)
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
