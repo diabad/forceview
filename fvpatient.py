@@ -10,7 +10,10 @@ __license__ = "GPL V3"
 class fvPatient:
 
     def __init__(self):
-        pass
+        self.lname = ""
+        self.fname = ""
+        self.dob = ""
+        self.patid = "" 
     
     #Returns the SQL needed to insert a patient
     def genInsertSQL(self):

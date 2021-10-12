@@ -11,7 +11,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import font
 from tkinter import filedialog
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import numpy as np
@@ -23,7 +23,8 @@ class forceView:
 
     def __init__(self):
         self.currPat = fp.fvPatient()
-        self.selData = np.array([])
+        self.graphData = np.array([])
+        self.selDay = 0
         progEntry = su.fvStartup(self.currPat)
         progEntry.run_startup()
         self.root = Tk()
@@ -31,45 +32,47 @@ class forceView:
 
     #Opens a dialog to allow you to open a new datafile
     def openNewFile(self):
-        #Creat a new toplevel window for the progress bar and the progress bar
-        progWindow = Toplevel(self.root)
-        progWindow.title("Data downsampling progress")
-        progBar = ttk.Progressbar(progWindow, orient = HORIZONTAL, length = 500, mode = 'determinate', maximum = 100)
-        progWindow.attributes('-topmost', 'true')
-        progBar.grid()
-
         #Prompt the user for the data file
         dataFile = filedialog.askopenfilename()
-        data = np.fromfile(dataFile, dtype='<u2')
-        secs = np.floor_divide(data.size,250)
-        #secs = 3600
+        self.graphData = np.fromfile(dataFile, dtype='<u2')
 
-        #Down sample the data to an average of all the sample over a second
-        for i in range(secs-1):
-            progBar['value'] = i/secs * 100
-            progWindow.update()
-            #print("Percent done: "+str(progBar['value'])+"%")
-            sumData = 0
-            for j in range(249):
-                sumData = sumData + data[i*250+j]
-            avg = np.floor_divide(sumData, 250)
-            self.selData = np.append(self.selData, avg)
-        
-        #Kill the progress bar window
-        progWindow.destroy()
+        #Plot the selection graph
+        self.plotGraph('sel')
 
-        self.plotSelGraph()
+        #Plot the main window graph
+        self.plotGraph('main')
     
-    #Plot the Selection graph
-    def plotSelGraph(self):
-        #Create the nav plot
+    #Plot the Selection graph type = type of graph sel or main
+    def plotGraph(self, typ):
+        #Create the selection plot
         #Maybe create the figure first and then the axes
         fig, ax = plt.subplots()
-        ax.plot(self.selData)
-        #ax.set(xlabel='Seconds', ylabel='Force (N)')
-        selCanvas = FigureCanvasTkAgg(fig, master=self.sgFrame)
-        selCanvas.draw()
-        selCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        if typ == 'sel':
+            fig.patch.set_facecolor('xkcd:mint green')
+            ax.set_xlim(xmin=0, xmax=self.graphData.size)
+            ax.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
+            ax.axes.xaxis.set_ticks([])
+            ax.axes.yaxis.set_ticks([])
+            ax.plot(self.graphData)
+            plt.subplots_adjust(left=0, right=1, bottom=0, top=1)
+            graphCanvas = FigureCanvasTkAgg(fig, master=self.sgFrame)
+            graphCanvas.draw()
+            graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        elif typ == 'main':
+            startDay = self.selDay * 21600000
+            endDay = startDay + 21600000
+            ax.set_xlim(xmin=0, xmax=self.graphData.size)
+            ax.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
+            ax.plot(self.graphData[startDay:endDay])
+            fig.tight_layout()
+            graphCanvas = FigureCanvasTkAgg(fig, master=self.mgFrame)
+            graphCanvas.draw()
+            graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+            ax.set(xlabel='Seconds', ylabel='Force (N)')
+            #ax.legend()
+            #Create the toolbar
+            grahpToolbar = NavigationToolbar2Tk(graphCanvas, self.mgFrame).update()
+            graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
 
     #Opens a dialog to allow you to open an existing datafile
     def openExtantFile(self):
@@ -82,8 +85,8 @@ class forceView:
         self.root['menu'] = menubar
         menuFile = Menu(menubar)
         menubar.add_cascade(menu=menuFile, label='File')
-        menuFile.add_command(label='Open New File', command=self.openNewFile)
-        menuFile.add_command(label='Open Existing File', command=self.openExtantFile)
+        menuFile.add_command(label='Open Data File', command=self.openNewFile)
+        #menuFile.add_command(label='Open Existing File', command=self.openExtantFile)
 
         #Create the main content frame
         mainframe = ttk.Frame(self.root, padding="5 5 5 5")
@@ -133,7 +136,7 @@ class forceView:
         dsFrame.grid_propagate(False)
         dsTitle = ttk.Label(dsFrame, text="Data Statistics", font=titleFont)
         dsTitle.grid(sticky = (N, W))
-        dodLabel = ttk.Label(dsFrame, text="Days of Data")
+        dodLabel = ttk.Label(dsFrame, text="Selected Day")
         dodLabel.grid(sticky = (N, W))
         dodEntry = ttk.Entry(dsFrame)
         dodEntry.grid(sticky = (N, W))
@@ -149,12 +152,8 @@ class forceView:
         thsLabel.grid(sticky = (N, W))
         thScale = ttk.Scale(dsFrame, orient=HORIZONTAL, length=200, from_=1.0, to=100.0)
         thScale.grid(sticky = (N, W))
-        mvdLabel = ttk.Label(dsFrame, text="Mean value of data")
-        mvdLabel.grid(sticky = (N, W))
-        mvdEntry = ttk.Entry(dsFrame)
-        mvdEntry.grid(sticky = (N, W))
 
-        #Setup the graph selection data frame
+        #Setup the graph selection data frame 
         gsFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=200, height=200)
         gsFrame.grid(column=0, row=2, sticky=(N,S))
         gsFrame.grid_propagate(False)
@@ -164,18 +163,18 @@ class forceView:
         tsLabel.grid(sticky = (N, W))
         tsEntry = ttk.Entry(gsFrame)
         tsEntry.grid(sticky = (N, W))
-        tssLabel = ttk.Label(gsFrame, text="Threshold")
-        tssLabel.grid(sticky = (N, W))
-        tsScale = ttk.Scale(gsFrame, orient=HORIZONTAL, length=200, from_=1.0, to=100.0)
-        tsScale.grid(sticky = (N, W))
-        ssLabel = ttk.Label(gsFrame, text="Span selected")
+        ssLabel = ttk.Label(gsFrame, text="Day selected")
         ssLabel.grid(sticky = (N, W))
         ssEntry = ttk.Entry(gsFrame)
         ssEntry.grid(sticky = (N, W))
+        #tssLabel = ttk.Label(gsFrame, text="")
+        #tssLabel.grid(sticky = (N, W))
+        tsScale = ttk.Scale(gsFrame, orient=HORIZONTAL, length=200, from_=1.0, to=100.0)
+        tsScale.grid(sticky = (N, W))
 
         #Setup the main graph frame
-        mgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=400)
-        mgFrame.grid(column=1, row=0, columnspan=3,  rowspan=2, sticky=(N, S, E, W))
+        self.mgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=400)
+        self.mgFrame.grid(column=1, row=0, columnspan=3,  rowspan=2, sticky=(N, S, E, W))
 
         #Setup the selection graph frame
         self.sgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=200)
