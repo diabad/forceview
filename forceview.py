@@ -24,60 +24,67 @@ class forceView:
     def __init__(self):
         self.currPat = fp.fvPatient()
         self.graphData = np.array([])
-        self.selDay = 0
+        self.selPoint = 0
         progEntry = su.fvStartup(self.currPat)
         progEntry.run_startup()
         self.root = Tk()
         self.root.title("Force View")
+        #Create the figure and axes for plots
+        self.selFig, self.selAx = plt.subplots()
+        plt.subplots_adjust(left=0, right=1, bottom=0, top=1)
 
     #Opens a dialog to allow you to open a new datafile
     def openNewFile(self):
+        #Get the # of samples in a day with 250 samples in a second
+        sampsPerDay = 250*60*60*24
+
         #Prompt the user for the data file
         dataFile = filedialog.askopenfilename()
         self.graphData = np.fromfile(dataFile, dtype='<u2')
+        totNumSamps = self.graphData.size
+        daysInFile = int(totNumSamps/sampsPerDay)
+        self.ndEntryStr.set(daysInFile)
 
         #Plot the selection graph
-        self.plotGraph('sel')
-
-        #Plot the main window graph
-        self.plotGraph('main')
-    
-    #Plot the Selection graph type = type of graph sel or main
-    def plotGraph(self, typ):
-        #Create the selection plot
-        #Maybe create the figure first and then the axes
-        fig, ax = plt.subplots()
-        if typ == 'sel':
-            fig.patch.set_facecolor('xkcd:mint green')
-            ax.set_xlim(xmin=0, xmax=self.graphData.size)
-            ax.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
-            ax.axes.xaxis.set_ticks([])
-            ax.axes.yaxis.set_ticks([])
-            ax.plot(self.graphData)
-            plt.subplots_adjust(left=0, right=1, bottom=0, top=1)
-            graphCanvas = FigureCanvasTkAgg(fig, master=self.sgFrame)
-            graphCanvas.draw()
-            graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
-        elif typ == 'main':
-            startDay = self.selDay * 21600000
-            endDay = startDay + 21600000
-            ax.set_xlim(xmin=0, xmax=self.graphData.size)
-            ax.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
-            ax.plot(self.graphData[startDay:endDay])
-            fig.tight_layout()
-            graphCanvas = FigureCanvasTkAgg(fig, master=self.mgFrame)
-            graphCanvas.draw()
-            graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
-            ax.set(xlabel='Seconds', ylabel='Force (N)')
-            #ax.legend()
-            #Create the toolbar
-            grahpToolbar = NavigationToolbar2Tk(graphCanvas, self.mgFrame).update()
-            graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        self.plotSelGraph()
 
     #Opens a dialog to allow you to open an existing datafile
     def openExtantFile(self):
         pass
        
+    #Plot the Selection graph type = type of graph sel or main
+    def plotSelGraph(self):
+        #Create the selection plot
+        self.selAx.set_xlim(xmin=0, xmax=self.graphData.size)
+        self.selAx.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
+        self.selAx.axes.xaxis.set_ticks([])
+        self.selAx.axes.yaxis.set_ticks([])
+        self.selAx.plot(self.graphData)
+        selGraphCanvas = FigureCanvasTkAgg(self.selFig, master=self.sgFrame)
+        selGraphCanvas.draw()
+        selGraphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        selGraphCanvas.mpl_connect('button_press_event', self.selMousePos)
+
+    def selMousePos(self,event):
+        #Set the select point with a mouse click and load main graph
+        selPosX, selPosY = int(event.xdata), int(event.ydata)
+        self.selPoint = selPosX
+        print('x = %d, y = %d' % (selPosX, selPosY))
+
+        #Plot the main window graph
+        line = self.mainGraphLine.pop(0)
+        line.remove()
+        if self.selPoint + 21600000 < self.graphData.size:
+            endPoint = self.selPoint + 21600000
+        else:
+            endPoint = self.graphData.size 
+        self.mainAx.set_xlim(xmin=0, xmax=(endPoint-self.selPoint))
+        self.mainAx.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
+        self.mainGraphLine = self.mainAx.plot(self.graphData[self.selPoint:endPoint])
+        self.mainFig.tight_layout()
+        #plt.ion()
+        self.graphCanvas.draw()
+
     def run_app(self):
         #Setup the menubar
         self.root.option_add('*tearOff', FALSE)
@@ -140,18 +147,6 @@ class forceView:
         dodLabel.grid(sticky = (N, W))
         dodEntry = ttk.Entry(dsFrame)
         dodEntry.grid(sticky = (N, W))
-        lsLabel = ttk.Label(dsFrame, text="Largest Spikes")
-        lsLabel.grid(sticky = (N, W))
-        lsEntry = ttk.Entry(dsFrame)
-        lsEntry.grid(sticky = (N, W))
-        satLabel = ttk.Label(dsFrame, text="Spikes above threshold")
-        satLabel.grid(sticky = (N, W))
-        satEntry = ttk.Entry(dsFrame)
-        satEntry.grid(sticky = (N, W))
-        thsLabel = ttk.Label(dsFrame, text="Threshold")
-        thsLabel.grid(sticky = (N, W))
-        thScale = ttk.Scale(dsFrame, orient=HORIZONTAL, length=200, from_=1.0, to=100.0)
-        thScale.grid(sticky = (N, W))
 
         #Setup the graph selection data frame 
         gsFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=200, height=200)
@@ -159,22 +154,26 @@ class forceView:
         gsFrame.grid_propagate(False)
         gsTitle = ttk.Label(gsFrame, text="Selection Graph", font=titleFont)
         gsTitle.grid(sticky = (N, W))
-        tsLabel = ttk.Label(gsFrame, text="Time span")
-        tsLabel.grid(sticky = (N, W))
-        tsEntry = ttk.Entry(gsFrame)
-        tsEntry.grid(sticky = (N, W))
-        ssLabel = ttk.Label(gsFrame, text="Day selected")
-        ssLabel.grid(sticky = (N, W))
-        ssEntry = ttk.Entry(gsFrame)
-        ssEntry.grid(sticky = (N, W))
-        #tssLabel = ttk.Label(gsFrame, text="")
-        #tssLabel.grid(sticky = (N, W))
-        tsScale = ttk.Scale(gsFrame, orient=HORIZONTAL, length=200, from_=1.0, to=100.0)
-        tsScale.grid(sticky = (N, W))
+        ndLabel = ttk.Label(gsFrame, text="Number of days in file")
+        ndLabel.grid(sticky = (N, W))
+        self.ndEntryStr = StringVar()
+        self.ndEntry = ttk.Entry(gsFrame, textvariable=self.ndEntryStr)
+        self.ndEntry.grid(sticky = (N, W))
 
         #Setup the main graph frame
         self.mgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=400)
         self.mgFrame.grid(column=1, row=0, columnspan=3,  rowspan=2, sticky=(N, S, E, W))
+        #Create the main graph figure and axis
+        self.mainFig, self.mainAx = plt.subplots()
+        #Setup the main graph canvas
+        self.graphCanvas = FigureCanvasTkAgg(self.mainFig, master=self.mgFrame)
+        self.graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        #Set up the main graph axes
+        self.mainAx.set(xlabel='Seconds', ylabel='Force (N)')
+        self.mainGraphLine = self.mainAx.plot(0,0)
+        #Create the main graph toolbar
+        grahpToolbar = NavigationToolbar2Tk(self.graphCanvas, self.mgFrame).update()
+        self.graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
 
         #Setup the selection graph frame
         self.sgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=200)
