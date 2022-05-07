@@ -36,13 +36,13 @@ class forceView:
     #Opens a dialog to allow you to open a new datafile
     def openNewFile(self):
         #Get the # of samples in a day with 250 samples in a second
-        sampsPerDay = 250*60*60*24
+        self.sampsPerDay = 250*60*60*24
 
         #Prompt the user for the data file
         dataFile = filedialog.askopenfilename()
         self.graphData = np.fromfile(dataFile, dtype='<u2')
         totNumSamps = self.graphData.size
-        daysInFile = int(totNumSamps/sampsPerDay)
+        daysInFile = int(totNumSamps/self.sampsPerDay)+1
         self.ndEntryStr.set(daysInFile)
 
         #Plot the selection graph
@@ -69,6 +69,8 @@ class forceView:
         #Set the select point with a mouse click and load main graph
         selPosX, selPosY = int(event.xdata), int(event.ydata)
         self.selPoint = selPosX
+        #Set the selected day entry box
+        self.dsEntryStr.set(int(selPosX/self.sampsPerDay))
         print('x = %d, y = %d' % (selPosX, selPosY))
 
         #Plot the main window graph
@@ -82,7 +84,6 @@ class forceView:
         self.mainAx.set_ylim(ymin=-5, ymax=np.amax(self.graphData)+50)
         self.mainGraphLine = self.mainAx.plot(self.graphData[self.selPoint:endPoint])
         self.mainFig.tight_layout()
-        #plt.ion()
         self.graphCanvas.draw()
 
     def run_app(self):
@@ -143,10 +144,11 @@ class forceView:
         dsFrame.grid_propagate(False)
         dsTitle = ttk.Label(dsFrame, text="Data Statistics", font=titleFont)
         dsTitle.grid(sticky = (N, W))
-        dodLabel = ttk.Label(dsFrame, text="Selected Day")
-        dodLabel.grid(sticky = (N, W))
-        dodEntry = ttk.Entry(dsFrame)
-        dodEntry.grid(sticky = (N, W))
+        dsLabel = ttk.Label(dsFrame, text="Day selected")
+        dsLabel.grid(sticky = (N, W))
+        self.dsEntryStr = StringVar()
+        dsEntry = ttk.Entry(dsFrame, textvariable=self.dsEntryStr)
+        dsEntry.grid(sticky = (N, W))
 
         #Setup the graph selection data frame 
         gsFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=200, height=200)
@@ -157,8 +159,8 @@ class forceView:
         ndLabel = ttk.Label(gsFrame, text="Number of days in file")
         ndLabel.grid(sticky = (N, W))
         self.ndEntryStr = StringVar()
-        self.ndEntry = ttk.Entry(gsFrame, textvariable=self.ndEntryStr)
-        self.ndEntry.grid(sticky = (N, W))
+        ndEntry = ttk.Entry(gsFrame, textvariable=self.ndEntryStr)
+        ndEntry.grid(sticky = (N, W))
 
         #Setup the main graph frame
         self.mgFrame = ttk.Frame(mainframe, borderwidth=5, relief="ridge", width=600, height=400)
@@ -169,7 +171,7 @@ class forceView:
         self.graphCanvas = FigureCanvasTkAgg(self.mainFig, master=self.mgFrame)
         self.graphCanvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
         #Set up the main graph axes
-        self.mainAx.set(xlabel='Seconds', ylabel='Force (N)')
+        self.mainAx.set(xlabel='Samples', ylabel='Force (N)')
         self.mainGraphLine = self.mainAx.plot(0,0)
         #Create the main graph toolbar
         grahpToolbar = NavigationToolbar2Tk(self.graphCanvas, self.mgFrame).update()
